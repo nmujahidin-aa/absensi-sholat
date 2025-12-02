@@ -3,13 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Absensi Scan QR</title>
 
-  <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
@@ -17,7 +13,7 @@
       margin: 0;
       padding: 0;
       font-family: 'Inter', sans-serif;
-      background: #f5f7fa;
+      background: linear-gradient(135deg, #eef2f3, #dfe9f3);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -28,20 +24,28 @@
       width: 100%;
       max-width: 420px;
       background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       text-align: center;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h2 {
       margin-bottom: 20px;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 600;
+      color: #333;
     }
 
     #reader {
-      width: 100% !important;
+      border-radius: 12px;
+      overflow: hidden;
       margin: auto;
     }
 
@@ -49,14 +53,36 @@
       margin-top: 20px;
       font-size: 18px;
       font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
 
-    .success {
-      color: #22c55e;
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+
+    .btn {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background: #4f46e5;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      transition: 0.2s;
+      display: none;
     }
 
-    .error {
-      color: #ef4444;
+    .btn:hover {
+      background: #4338ca;
+    }
+
+    .loading {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #555;
     }
   </style>
 </head>
@@ -64,16 +90,25 @@
 <body>
 
 <div class="container">
-  <h2>Scan QR untuk Absensi</h2>
+  <h2>📸 Scan QR untuk Absensi</h2>
   <div id="reader"></div>
+
+  <p id="loading" class="loading"></p>
   <p id="status"></p>
+
+  <button id="retryBtn" class="btn" onclick="restartScanner()">Scan Ulang</button>
 </div>
 
 <script>
 const webhookURL = "https://script.google.com/macros/s/AKfycbwpkjsYS7e-Hv1l0mEiA2Wlzml1pQxULD9mEerhWIA3H_NZ1uoaOlyLcMYUgMufAA/exec";
 
+let html5QrcodeScanner;
+
 function sendToSheet(decodedText) {
     let parts = decodedText.split("|");
+
+    document.getElementById("loading").innerHTML = "⏳ Mengirim data...";
+    document.getElementById("status").style.opacity = 0;
 
     fetch(webhookURL, {
         method: "POST",
@@ -87,6 +122,7 @@ function sendToSheet(decodedText) {
     .then(res => res.json())
     .then(data => {
         let statusEl = document.getElementById("status");
+        document.getElementById("loading").innerHTML = "";
 
         if (data.status === "duplicate") {
             statusEl.innerHTML = "❌ Hari ini sudah absen.";
@@ -95,6 +131,9 @@ function sendToSheet(decodedText) {
             statusEl.innerHTML = "✅ Absensi berhasil!";
             statusEl.className = "success";
         }
+
+        statusEl.style.opacity = 1;
+        document.getElementById("retryBtn").style.display = "block";
     });
 }
 
@@ -103,12 +142,20 @@ function onScanSuccess(decodedText, decodedResult) {
     sendToSheet(decodedText);
 }
 
-var html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: { width: 250, height: 250 } }
-);
+function restartScanner() {
+    document.getElementById("status").style.opacity = 0;
+    document.getElementById("retryBtn").style.display = "none";
 
-html5QrcodeScanner.render(onScanSuccess);
+    html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } }
+    );
+
+    html5QrcodeScanner.render(onScanSuccess);
+}
+
+// Start pertama kali
+restartScanner();
 </script>
 
 </body>
