@@ -1,13 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Absensi Scan QR</title>
+
+  <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    #reader {
+      width: 100% !important;
+      margin: auto;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .success {
+      color: #22c55e;
+    }
+
+    .error {
+      color: #ef4444;
+    }
+  </style>
 </head>
+
 <body>
+
+<div class="container">
   <h2>Scan QR untuk Absensi</h2>
-  <div id="reader" style="width: 300px;"></div>
+  <div id="reader"></div>
   <p id="status"></p>
+</div>
 
 <script>
 const webhookURL = "https://script.google.com/macros/s/AKfycbwpkjsYS7e-Hv1l0mEiA2Wlzml1pQxULD9mEerhWIA3H_NZ1uoaOlyLcMYUgMufAA/exec";
@@ -17,17 +77,25 @@ function sendToSheet(decodedText) {
 
     fetch(webhookURL, {
         method: "POST",
-        contentType: "application/json",
         body: JSON.stringify({
             id_siswa: parts[0],
             nama_siswa: parts[1],
             lokasi: "Masjid",
             device: navigator.userAgent
         })
-    }).then(res => res.json())
-      .then(data => {
-         document.getElementById("status").innerHTML = "Absensi berhasil!";
-      });
+    })
+    .then(res => res.json())
+    .then(data => {
+        let statusEl = document.getElementById("status");
+
+        if (data.status === "duplicate") {
+            statusEl.innerHTML = "❌ Hari ini sudah absen.";
+            statusEl.className = "error";
+        } else {
+            statusEl.innerHTML = "✅ Absensi berhasil!";
+            statusEl.className = "success";
+        }
+    });
 }
 
 function onScanSuccess(decodedText, decodedResult) {
@@ -36,9 +104,10 @@ function onScanSuccess(decodedText, decodedResult) {
 }
 
 var html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader", 
-    { fps: 10, qrbox: 250 }
+    "reader",
+    { fps: 10, qrbox: { width: 250, height: 250 } }
 );
+
 html5QrcodeScanner.render(onScanSuccess);
 </script>
 
