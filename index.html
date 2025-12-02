@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Absensi Scan QR</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <h2>Scan QR untuk Absensi</h2>
+  <div id="reader" style="width: 300px;"></div>
+  <p id="status"></p>
+
+<script>
+const webhookURL = "https://script.google.com/macros/s/AKfycbwpkjsYS7e-Hv1l0mEiA2Wlzml1pQxULD9mEerhWIA3H_NZ1uoaOlyLcMYUgMufAA/exec";
+
+function sendToSheet(decodedText) {
+    let parts = decodedText.split("|");
+
+    fetch(webhookURL, {
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+            id_siswa: parts[0],
+            nama_siswa: parts[1],
+            lokasi: "Masjid",
+            device: navigator.userAgent
+        })
+    }).then(res => res.json())
+      .then(data => {
+         document.getElementById("status").innerHTML = "Absensi berhasil!";
+      });
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+    html5QrcodeScanner.clear();
+    sendToSheet(decodedText);
+}
+
+var html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader", 
+    { fps: 10, qrbox: 250 }
+);
+html5QrcodeScanner.render(onScanSuccess);
+</script>
+
+</body>
+</html>
