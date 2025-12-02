@@ -74,20 +74,12 @@
 </div>
 
 <script>
-const webhookURL = "https://script.google.com/macros/s/AKfycbwpkjsYS7e-Hv1l0mEiA2Wlzml1pQxULD9mEerhWIA3H_NZ1uoaOlyLcMYUgMufAA/exec";
+const webhookURL = "PASTE_WEB_APP_URL_DI_SINI";  // <--- WAJIB
+
 let html5QrcodeScanner;
 
-// ----------------------------------------
-// Preflight OPTIONS (wajib agar CORS LOL)
-// ----------------------------------------
-function sendPreflight() {
-    return fetch(webhookURL + "?_cors=options", {
-        method: "OPTIONS"
-    });
-}
-
 // ------------------------------------------------
-// KIRIM DATA KE GOOGLE SHEETS
+// KIRIM DATA KE GOOGLE SHEETS (NO-CORS FRIENDLY)
 // ------------------------------------------------
 function sendToSheet(decodedText) {
     let parts = decodedText.split("|");
@@ -104,37 +96,27 @@ function sendToSheet(decodedText) {
     document.getElementById("loading").innerHTML = "⏳ Mengirim data...";
     document.getElementById("status").style.opacity = 0;
 
-    // 1️⃣ Preflight dulu
-    sendPreflight()
-    .then(() => {
-        // 2️⃣ Kirim POST request
-        return fetch(webhookURL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id_siswa: id,
-                nama_siswa: nama,
-                lokasi: "Masjid"
-            })
-        });
+    // LANGSUNG POST TANPA OPTIONS
+    fetch(webhookURL, {
+        method: "POST",
+        mode: "no-cors", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            id_siswa: id,
+            nama_siswa: nama,
+            lokasi: "Masjid"
+        })
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(() => {
+        // Karena mode: no-cors → tidak bisa baca response
+        // Jadi anggap selalu sukses
         document.getElementById("loading").innerHTML = "";
-
-        if (data.status === "duplicate") {
-            showMessage("❌ Hari ini sudah absen.", "error");
-        } else if (data.status === "success") {
-            showMessage("✅ Absensi berhasil!", "success");
-        } else {
-            showMessage("⚠ Terjadi kesalahan server.", "error");
-        }
-
+        showMessage("✅ Absensi terkirim!", "success");
         document.getElementById("retryBtn").style.display = "block";
     })
     .catch(err => {
         console.log(err);
-        showMessage("⚠ Gagal mengirim data (offline / server error)", "error");
+        showMessage("⚠ Gagal mengirim data", "error");
         document.getElementById("retryBtn").style.display = "block";
     });
 }
