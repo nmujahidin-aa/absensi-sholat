@@ -23,7 +23,10 @@
     color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     animation: fadeUp .5s ease-in-out;
   }
-  @keyframes fadeUp { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes fadeUp { 
+    from {opacity:0; transform:translateY(20px);} 
+    to {opacity:1; transform:translateY(0);} 
+  }
 
   h2 { font-size: 26px; margin-bottom: 10px; font-weight: 600; }
   .sub { font-size: 14px; opacity: .8; margin-bottom: 20px; }
@@ -37,7 +40,11 @@
   #status { margin-top: 20px; font-size: 20px; font-weight: 600; opacity: 0; transition: .4s; }
   .success { color: #4ade80; animation: pop .4s; }
   .error { color: #f87171; animation: pop .4s; }
-  @keyframes pop { 0% {transform:scale(0.7);} 70% {transform:scale(1.1);} 100% {transform:scale(1);} }
+  @keyframes pop { 
+    0% {transform:scale(0.7);} 
+    70% {transform:scale(1.1);} 
+    100% {transform:scale(1);} 
+  }
 
   .loading { margin-top: 15px; font-size: 16px; }
 
@@ -70,6 +77,15 @@
 const webhookURL = "https://script.google.com/macros/s/AKfycbwpkjsYS7e-Hv1l0mEiA2Wlzml1pQxULD9mEerhWIA3H_NZ1uoaOlyLcMYUgMufAA/exec";
 let html5QrcodeScanner;
 
+// ----------------------------------------
+// Preflight OPTIONS (wajib agar CORS LOL)
+// ----------------------------------------
+function sendPreflight() {
+    return fetch(webhookURL + "?_cors=options", {
+        method: "OPTIONS"
+    });
+}
+
 // ------------------------------------------------
 // KIRIM DATA KE GOOGLE SHEETS
 // ------------------------------------------------
@@ -88,18 +104,22 @@ function sendToSheet(decodedText) {
     document.getElementById("loading").innerHTML = "⏳ Mengirim data...";
     document.getElementById("status").style.opacity = 0;
 
-    fetch(webhookURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            id_siswa: id,
-            nama_siswa: nama,
-            lokasi: "Masjid"
-        })
+    // 1️⃣ Preflight dulu
+    sendPreflight()
+    .then(() => {
+        // 2️⃣ Kirim POST request
+        return fetch(webhookURL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id_siswa: id,
+                nama_siswa: nama,
+                lokasi: "Masjid"
+            })
+        });
     })
     .then(res => res.json())
     .then(data => {
-        let statusEl = document.getElementById("status");
         document.getElementById("loading").innerHTML = "";
 
         if (data.status === "duplicate") {
@@ -113,6 +133,7 @@ function sendToSheet(decodedText) {
         document.getElementById("retryBtn").style.display = "block";
     })
     .catch(err => {
+        console.log(err);
         showMessage("⚠ Gagal mengirim data (offline / server error)", "error");
         document.getElementById("retryBtn").style.display = "block";
     });
