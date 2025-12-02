@@ -1,102 +1,122 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Absensi Scan QR</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi QR</title>
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #eef2f3, #dfe9f3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<style>
+  * {
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+  }
 
-    .container {
-      width: 100%;
-      max-width: 420px;
-      background: white;
-      border-radius: 20px;
-      padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-      text-align: center;
-      animation: fadeIn 0.4s ease-in-out;
-    }
+  body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #7b2ff7, #f107a3);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+  .container {
+    width: 92%;
+    max-width: 420px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(15px);
+    padding: 28px;
+    border-radius: 22px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    text-align: center;
+    color: white;
+    animation: fadeUp .5s ease-in-out;
+  }
 
-    h2 {
-      margin-bottom: 20px;
-      font-size: 24px;
-      font-weight: 600;
-      color: #333;
-    }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-    #reader {
-      border-radius: 12px;
-      overflow: hidden;
-      margin: auto;
-    }
+  h2 {
+    font-size: 26px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
 
-    #status {
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: 600;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
+  .sub {
+    font-size: 14px;
+    opacity: .8;
+    margin-bottom: 20px;
+  }
 
-    .success { color: #22c55e; }
-    .error { color: #ef4444; }
+  #reader {
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255,255,255,0.5);
+    border: 3px solid rgba(255,255,255,0.4);
+  }
 
-    .btn {
-      margin-top: 20px;
-      padding: 12px 20px;
-      background: #4f46e5;
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 100%;
-      transition: 0.2s;
-      display: none;
-    }
+  #status {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    opacity: 0;
+    transition: .4s;
+  }
 
-    .btn:hover {
-      background: #4338ca;
-    }
+  .success { color: #4ade80; animation: pop .4s; }
+  .error { color: #f87171; animation: pop .4s; }
 
-    .loading {
-      margin-top: 15px;
-      font-size: 16px;
-      color: #555;
-    }
-  </style>
+  @keyframes pop {
+    0% { transform: scale(0.7); }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .loading {
+    margin-top: 15px;
+    font-size: 16px;
+  }
+
+  .btn {
+    margin-top: 22px;
+    padding: 14px;
+    width: 100%;
+    border-radius: 14px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #4f46e5, #9333ea);
+    color: white;
+    cursor: pointer;
+    display: none;
+    transition: 0.25s;
+  }
+
+  .btn:hover {
+    transform: scale(1.03);
+    background: linear-gradient(135deg, #4338ca, #7e22ce);
+  }
+</style>
 </head>
 
 <body>
 
 <div class="container">
-  <h2>📸 Scan QR untuk Absensi</h2>
+  <h2>📸 Scan QR</h2>
+  <p class="sub">Arahkan QR ke dalam kotak</p>
+
   <div id="reader"></div>
 
   <p id="loading" class="loading"></p>
   <p id="status"></p>
 
-  <button id="retryBtn" class="btn" onclick="restartScanner()">Scan Ulang</button>
+  <button id="retryBtn" class="btn" onclick="restartScanner()">🔄 Scan Ulang</button>
 </div>
 
 <script>
@@ -137,7 +157,7 @@ function sendToSheet(decodedText) {
     });
 }
 
-function onScanSuccess(decodedText, decodedResult) {
+function onScanSuccess(decodedText) {
     html5QrcodeScanner.clear();
     sendToSheet(decodedText);
 }
@@ -148,13 +168,12 @@ function restartScanner() {
 
     html5QrcodeScanner = new Html5QrcodeScanner(
         "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } }
+        { fps: 10, qrbox: { width: 260, height: 260 } }
     );
 
     html5QrcodeScanner.render(onScanSuccess);
 }
 
-// Start pertama kali
 restartScanner();
 </script>
 
